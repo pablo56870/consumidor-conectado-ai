@@ -1,273 +1,285 @@
 
-import React, { useState } from 'react';
-import { Calendar, Check, ChevronRight, Clock, Store, FileText, AlertCircle } from 'lucide-react';
-import { ComplaintType, COMPLAINT_TYPE_LABELS } from '../lib/complaintTypes';
+import React, { useState, useEffect } from 'react';
+import { ComplaintData, Company, complaintTypes, COMPLAINT_TYPE_LABELS } from '../lib/complaintTypes';
+import { Input } from './ui/input';
 
-interface FormStepsProps {
-  onCompleteForm: (formData: any) => void;
-}
+type ComplaintFormProps = {
+  onCompleteForm: (data: Partial<ComplaintData>) => void;
+};
 
-const FormSteps: React.FC<FormStepsProps> = ({ onCompleteForm }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    company: {
-      name: '',
-      segment: ''
-    },
-    complaintType: '' as ComplaintType,
+const FormSteps: React.FC<ComplaintFormProps> = ({ onCompleteForm }) => {
+  // Fix the spread type error by explicitly defining the type for formData
+  const [formData, setFormData] = useState<Partial<ComplaintData>>({
+    company: { name: '' },
+    complaintType: 'product_defect',
     description: '',
     contactAttempt: false,
     contactDescription: '',
     occurrenceDate: '',
   });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData({
-        ...formData,
-        [parent]: {
-          ...formData[parent as keyof typeof formData],
-          [child]: value
-        }
-      });
-    } else if (name === 'contactAttempt') {
-      setFormData({
-        ...formData,
-        contactAttempt: (e as React.ChangeEvent<HTMLInputElement>).target.checked
-      });
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Define steps
+  const steps = [
+    { id: 'company', label: 'Informações da empresa' },
+    { id: 'complaint', label: 'Tipo de reclamação' },
+    { id: 'description', label: 'Descrição do problema' },
+    { id: 'contact', label: 'Contato prévio' },
+    { id: 'date', label: 'Data da ocorrência' },
+  ];
+  
+  // Handle input changes
+  const handleChange = (field: keyof ComplaintData, value: any) => {
+    if (field === 'company') {
+      setFormData(prev => ({ ...prev, company: { name: value } }));
     } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
+      setFormData(prev => ({ ...prev, [field]: value }));
     }
   };
-
-  const handleNext = () => {
-    // Validate current step before proceeding
+  
+  // Navigate between steps
+  const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit the form
-      onCompleteForm({
-        ...formData,
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
+      onCompleteForm(formData);
     }
   };
-
-  const handleBack = () => {
+  
+  const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
-
-  const steps = [
-    {
-      title: 'Empresa',
-      icon: <Store className="h-6 w-6 text-consumer" />,
-      content: (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Qual empresa causou o problema?</h3>
+  
+  // Validate current step
+  const isCurrentStepValid = () => {
+    switch (currentStep) {
+      case 0: // Company
+        return formData.company?.name && formData.company.name.trim() !== '';
+      case 1: // Complaint type
+        return formData.complaintType !== undefined;
+      case 2: // Description
+        return formData.description && formData.description.trim().length >= 10;
+      case 3: // Contact attempt
+        return formData.contactAttempt !== undefined && 
+               (!formData.contactAttempt || 
+                (formData.contactDescription && formData.contactDescription.trim() !== ''));
+      case 4: // Date
+        return formData.occurrenceDate && formData.occurrenceDate.trim() !== '';
+      default:
+        return false;
+    }
+  };
+  
+  // Render form based on current step
+  const renderFormStep = () => {
+    switch (currentStep) {
+      case 0: // Company information
+        return (
           <div>
-            <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="company-name" className="block text-sm font-medium text-gray-700 mb-1">
               Nome da empresa
             </label>
-            <input
-              type="text"
-              id="companyName"
-              name="company.name"
-              placeholder="Ex: Loja Virtual Brasil"
-              value={formData.company.name}
-              onChange={handleInputChange}
-              className="input-field"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="companySegment" className="block text-sm font-medium text-gray-700 mb-1">
-              Segmento (opcional)
-            </label>
-            <input
-              type="text"
-              id="companySegment"
-              name="company.segment"
-              placeholder="Ex: Varejo, Telecomunicações, Transporte"
-              value={formData.company.segment || ''}
-              onChange={handleInputChange}
+            <Input
+              id="company-name"
+              value={formData.company?.name || ''}
+              onChange={(e) => handleChange('company', e.target.value)}
+              placeholder="Ex: Loja ABC"
               className="input-field"
             />
           </div>
-        </div>
-      )
-    },
-    {
-      title: 'Problema',
-      icon: <AlertCircle className="h-6 w-6 text-consumer" />,
-      content: (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Qual é o tipo de problema?</h3>
+        );
+      
+      case 1: // Complaint type
+        return (
           <div>
-            <label htmlFor="complaintType" className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo de reclamação
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Selecione o tipo de problema
             </label>
-            <select
-              id="complaintType"
-              name="complaintType"
-              value={formData.complaintType}
-              onChange={handleInputChange}
-              className="input-field"
-              required
-            >
-              <option value="">Selecione o tipo de problema</option>
-              {Object.entries(COMPLAINT_TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
+            <div className="space-y-2">
+              {complaintTypes.map((type) => (
+                <div key={type} className="flex items-center">
+                  <input
+                    type="radio"
+                    id={type}
+                    name="complaint-type"
+                    value={type}
+                    checked={formData.complaintType === type}
+                    onChange={() => handleChange('complaintType', type)}
+                    className="h-4 w-4 text-consumer focus:ring-consumer border-gray-300"
+                  />
+                  <label htmlFor={type} className="ml-2 block text-sm text-gray-700">
+                    {COMPLAINT_TYPE_LABELS[type]}
+                  </label>
+                </div>
               ))}
-            </select>
+            </div>
           </div>
+        );
+      
+      case 2: // Description
+        return (
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição do problema
+              Descreva o que aconteceu
             </label>
             <textarea
               id="description"
-              name="description"
-              rows={4}
-              placeholder="Descreva com detalhes o que aconteceu"
-              value={formData.description}
-              onChange={handleInputChange}
-              className="input-field"
-              required
-            ></textarea>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: 'Contato Prévio',
-      icon: <FileText className="h-6 w-6 text-consumer" />,
-      content: (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Você já tentou contato com a empresa?</h3>
-          <div className="flex items-start space-x-2">
-            <input
-              type="checkbox"
-              id="contactAttempt"
-              name="contactAttempt"
-              checked={formData.contactAttempt}
-              onChange={handleInputChange}
-              className="mt-1"
+              value={formData.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Descreva detalhadamente o problema que você enfrentou..."
+              className="input-field h-32"
+              rows={6}
             />
-            <label htmlFor="contactAttempt" className="block text-sm font-medium text-gray-700">
-              Sim, já tentei entrar em contato com a empresa
-            </label>
           </div>
-          
-          {formData.contactAttempt && (
+        );
+      
+      case 3: // Contact attempt
+        return (
+          <div className="space-y-4">
             <div>
-              <label htmlFor="contactDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                Descreva suas tentativas de contato
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Você já tentou contato com a empresa antes?
               </label>
-              <textarea
-                id="contactDescription"
-                name="contactDescription"
-                rows={3}
-                placeholder="Ex: Liguei para o SAC no dia 10/05, falei com Maria, mas não resolveram..."
-                value={formData.contactDescription}
-                onChange={handleInputChange}
-                className="input-field"
-              ></textarea>
+              <div className="flex space-x-4">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="contact-yes"
+                    name="contact-attempt"
+                    checked={formData.contactAttempt === true}
+                    onChange={() => handleChange('contactAttempt', true)}
+                    className="h-4 w-4 text-consumer focus:ring-consumer border-gray-300"
+                  />
+                  <label htmlFor="contact-yes" className="ml-2 block text-sm text-gray-700">
+                    Sim
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="contact-no"
+                    name="contact-attempt"
+                    checked={formData.contactAttempt === false}
+                    onChange={() => handleChange('contactAttempt', false)}
+                    className="h-4 w-4 text-consumer focus:ring-consumer border-gray-300"
+                  />
+                  <label htmlFor="contact-no" className="ml-2 block text-sm text-gray-700">
+                    Não
+                  </label>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      )
-    },
-    {
-      title: 'Data',
-      icon: <Calendar className="h-6 w-6 text-consumer" />,
-      content: (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Quando o problema ocorreu?</h3>
+            
+            {formData.contactAttempt && (
+              <div>
+                <label htmlFor="contact-description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Descreva o contato realizado
+                </label>
+                <textarea
+                  id="contact-description"
+                  value={formData.contactDescription || ''}
+                  onChange={(e) => handleChange('contactDescription', e.target.value)}
+                  placeholder="Como você entrou em contato? Qual foi a resposta da empresa?"
+                  className="input-field"
+                  rows={4}
+                />
+              </div>
+            )}
+          </div>
+        );
+      
+      case 4: // Date
+        return (
           <div>
-            <label htmlFor="occurrenceDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Data aproximada
+            <label htmlFor="occurrence-date" className="block text-sm font-medium text-gray-700 mb-1">
+              Data da ocorrência
             </label>
-            <input
+            <Input
+              id="occurrence-date"
               type="date"
-              id="occurrenceDate"
-              name="occurrenceDate"
-              value={formData.occurrenceDate}
-              onChange={handleInputChange}
+              value={formData.occurrenceDate || ''}
+              onChange={(e) => handleChange('occurrenceDate', e.target.value)}
               className="input-field"
-              required
             />
           </div>
-          <div className="pt-2">
-            <p className="text-sm text-gray-500">
-              <Clock className="inline-block h-4 w-4 mr-1" />
-              É importante fornecer uma data aproximada para verificar prazos legais aplicáveis.
-            </p>
-          </div>
-        </div>
-      )
+        );
+      
+      default:
+        return null;
     }
-  ];
-
+  };
+  
   return (
-    <div className="bg-consumer-neutral rounded-xl p-6 shadow-sm">
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div 
-                className={`w-10 h-10 rounded-full flex items-center justify-center 
-                  ${currentStep >= index 
-                    ? 'bg-consumer text-white' 
-                    : 'bg-white border border-gray-300 text-gray-400'}`}
+    <div className="step-container">
+      {/* Progress Indicator */}
+      <div className="flex mb-6">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex-1">
+            <div className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                  index < currentStep
+                    ? 'bg-consumer text-white'
+                    : index === currentStep
+                    ? 'bg-consumer text-white'
+                    : 'bg-gray-200 text-gray-600'
+                }`}
               >
-                {currentStep > index ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  step.icon
-                )}
+                {index + 1}
               </div>
-              <span className={`text-xs mt-2 ${currentStep >= index ? 'text-consumer font-medium' : 'text-gray-500'}`}>
-                {step.title}
-              </span>
+              {index < steps.length - 1 && (
+                <div
+                  className={`h-1 flex-1 ${
+                    index < currentStep ? 'bg-consumer' : 'bg-gray-200'
+                  }`}
+                ></div>
+              )}
             </div>
-          ))}
-        </div>
-        <div className="mt-2 relative">
-          <div className="absolute top-0 left-0 h-1 bg-consumer" style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}></div>
-          <div className="h-1 w-full bg-gray-200"></div>
-        </div>
+            <div className="text-xs mt-1 text-center">
+              {step.label}
+            </div>
+          </div>
+        ))}
       </div>
-
-      <div className="step-container">
-        {steps[currentStep].content}
+      
+      {/* Form Step Content */}
+      <div className="mb-8">
+        <h3 className="text-lg font-medium mb-4">
+          {steps[currentStep].label}
+        </h3>
+        {renderFormStep()}
       </div>
-
-      <div className="flex justify-between mt-6">
+      
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
         <button 
-          onClick={handleBack}
+          type="button" 
+          onClick={prevStep}
           disabled={currentStep === 0}
-          className={`secondary-btn ${currentStep === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`px-4 py-2 rounded-md ${
+            currentStep === 0 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
         >
           Voltar
         </button>
+        
         <button 
-          onClick={handleNext} 
-          className="primary-btn flex items-center"
+          type="button" 
+          onClick={nextStep}
+          disabled={!isCurrentStepValid()}
+          className={`px-4 py-2 rounded-md ${
+            isCurrentStepValid() 
+              ? currentStep === steps.length - 1 
+                ? 'primary-btn' 
+                : 'secondary-btn'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
         >
-          {currentStep < steps.length - 1 ? 'Próximo' : 'Finalizar'}
-          <ChevronRight className="ml-1 h-5 w-5" />
+          {currentStep === steps.length - 1 ? 'Concluir' : 'Próximo'}
         </button>
       </div>
     </div>
