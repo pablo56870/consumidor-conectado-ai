@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors
+				'consumer': {
+					DEFAULT: '#1E6A94', // primary blue
+					light: '#E6F7FF',
+					accent: '#4CAF50', // green accent
+					dark: '#134B67',
+					neutral: '#F5F7FA',
 				}
 			},
 			borderRadius: {
@@ -89,6 +98,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif']
 			}
 		}
 	},
