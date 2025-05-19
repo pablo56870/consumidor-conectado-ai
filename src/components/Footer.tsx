@@ -23,15 +23,14 @@ const Footer: React.FC = () => {
               <ul className="space-y-2 text-sm">
                 <li><a href="#" className="text-gray-600 hover:text-consumer">Como funciona</a></li>
                 <li><a href="#" className="text-gray-600 hover:text-consumer">Recursos</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-consumer">Reclamações</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-consumer">Blog</a></li>
+                <li><a href="/dashboard" className="text-gray-600 hover:text-consumer">Minhas Reclamações</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-sm font-semibold text-gray-800 mb-3">Suporte</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-600 hover:text-consumer">Ajuda</a></li>
+                <li><a href="/faq" className="text-gray-600 hover:text-consumer">Ajuda</a></li>
                 <li><a href="/faq" className="text-gray-600 hover:text-consumer">FAQ</a></li>
                 <li><a href="/contato" className="text-gray-600 hover:text-consumer">Contato</a></li>
               </ul>
@@ -41,8 +40,7 @@ const Footer: React.FC = () => {
               <h3 className="text-sm font-semibold text-gray-800 mb-3">Legal</h3>
               <ul className="space-y-2 text-sm">
                 <li><a href="/termos-de-uso" className="text-gray-600 hover:text-consumer">Termos de Uso</a></li>
-                <li><a href="/privacidade" className="text-gray-600 hover:text-consumer">Privacidade</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-consumer">Cookies</a></li>
+                <li><a href="/privacidade" className="text-gray-600 hover:text-consumer">Política de Privacidade</a></li>
               </ul>
             </div>
           </div>

@@ -26,32 +26,6 @@ const Header: React.FC = () => {
             </Link>
           </div>
           
-          <nav className="hidden md:flex space-x-6">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link to="/" className="text-gray-600 hover:text-consumer transition-colors">
-                    Home
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/dashboard" className="text-gray-600 hover:text-consumer transition-colors">
-                    Minhas Reclamações
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/faq" className="text-gray-600 hover:text-consumer transition-colors">
-                    FAQ
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/contato" className="text-gray-600 hover:text-consumer transition-colors">
-                    Contato
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </nav>
           
           <div className="hidden md:flex items-center space-x-3">
             <Link to="/login" className="secondary-btn">Entrar</Link>
@@ -73,34 +47,6 @@ const Header: React.FC = () => {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t pt-4">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/" 
-                className="text-gray-600 hover:text-consumer transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/dashboard" 
-                className="text-gray-600 hover:text-consumer transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Minhas Reclamações
-              </Link>
-              <Link 
-                to="/faq" 
-                className="text-gray-600 hover:text-consumer transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                FAQ
-              </Link>
-              <Link 
-                to="/contato" 
-                className="text-gray-600 hover:text-consumer transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contato
-              </Link>
               <div className="flex flex-col space-y-2 pt-2">
                 <Link to="/login" className="secondary-btn text-center" onClick={() => setMobileMenuOpen(false)}>
                   Entrar
