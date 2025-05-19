@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ComplaintData, Company, complaintTypes, COMPLAINT_TYPE_LABELS } from '../lib/complaintTypes';
+import { ComplaintData, Company, ComplaintType, COMPLAINT_TYPE_LABELS } from '../lib/complaintTypes';
 import { Input } from './ui/input';
 
 type ComplaintFormProps = {
@@ -11,7 +11,7 @@ const FormSteps: React.FC<ComplaintFormProps> = ({ onCompleteForm }) => {
   // Fix the spread type error by explicitly defining the type for formData
   const [formData, setFormData] = useState<Partial<ComplaintData>>({
     company: { name: '' },
-    complaintType: 'product_defect',
+    complaintType: 'produto_defeituoso' as ComplaintType,
     description: '',
     contactAttempt: false,
     contactDescription: '',
@@ -72,6 +72,9 @@ const FormSteps: React.FC<ComplaintFormProps> = ({ onCompleteForm }) => {
     }
   };
   
+  // Create list of complaint types from the ComplaintType enum
+  const complaintTypesList = Object.keys(COMPLAINT_TYPE_LABELS) as ComplaintType[];
+  
   // Render form based on current step
   const renderFormStep = () => {
     switch (currentStep) {
@@ -98,7 +101,7 @@ const FormSteps: React.FC<ComplaintFormProps> = ({ onCompleteForm }) => {
               Selecione o tipo de problema
             </label>
             <div className="space-y-2">
-              {complaintTypes.map((type) => (
+              {complaintTypesList.map((type) => (
                 <div key={type} className="flex items-center">
                   <input
                     type="radio"
